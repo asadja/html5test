@@ -1,0 +1,143 @@
+
+<html>
+<head>
+<script type="text/javascript">
+
+var video;
+var media_url = "http://mlbsegqa.mlb.com/as04/testing/beds/crypted/2012_CC_TEST/master_wired.m3u8";
+
+
+function selectAudioTrack(index, enable)
+{
+  video.audioTracks[index].enabled = enable;
+  onTracksChanged();
+}
+
+function selectVideoTrack(index, enable)
+{
+  video.videoTracks.selectedIndex = index;
+  onTracksChanged();
+}
+
+function selectTextTrack(index, enable)
+{
+  video.textTracks[index].mode = enable ? "showing" : "disabled";
+  onTracksChanged();
+}
+
+function genTrackInfo(index, type)
+{
+  var track = null;
+  var selected = false;
+  var onclickAction = null;
+
+  switch(type) {
+    case "audio": 
+    {
+      track = video.audioTracks[index];
+      selected = track.enabled;
+      onclickAction = "selectAudioTrack("+index+", " + (!selected) + ")";
+    }
+    break;
+	case "text":
+	{
+	  track = video.textTracks[index];
+	  selected = (track.mode == "showing");
+	  onclickAction = "selectTextTrack("+index+", " + (!selected) + ")";
+	}
+	break;
+	case "video":
+	{
+	  track = video.videoTracks[index];
+	  selected = (index == video.videoTracks.selectedIndex);
+	  onclickAction = "selectVideoTrack("+index+", " + (!selected) + ")";
+	}
+	break;		
+  }
+
+  var info = "<pre>" + JSON.stringify(track, null, 2) + "</pre>";
+  info += "<input type='checkbox'";
+  if (selected) info += " checked = 'checked'";
+  info += " onclick='"+ onclickAction + ";'/>";
+
+  return info;
+}
+
+function genTracksInfo(type) {
+  var list = null;
+  switch(type){
+    case "audio": list = video.audioTracks; break;
+	case "text" : list = video.textTracks; break;
+	case "video" : list = video.videoTracks; break;
+  }
+
+  if (list == undefined)
+    return "undefined";
+  if (list == null)
+    return "null";
+
+  var info = "";
+  for (var i = 0; i < list.length; i++)
+  {
+    info += genTrackInfo(i, type);
+	info += "<hr>";
+  }
+  return info;
+}
+
+function onTracksChanged()
+{
+  document.getElementById("audio_tracks_info").innerHTML = genTracksInfo("audio");
+  document.getElementById("video_tracks_info").innerHTML = genTracksInfo("video");
+  document.getElementById("text_tracks_info").innerHTML = genTracksInfo("text");
+}
+
+function loadTracksInfo() 
+{
+  onTracksChanged();
+}
+
+function getSelectedAudio() 
+{
+  for(var i=0; i < video.audioTracks.length; i++) {
+    console.log("audioTracks["+i+"] = "+ JSON.stringify(video.audioTracks));
+    if (video.audioTracks[i].enabled == true) return i;
+  }
+  return -1;
+}
+
+function onLoad() 
+{
+  video = document.getElementById("video");
+  video.textTracks.onaddtrack = onTracksChanged;
+  video.src = media_url;
+}
+
+</script>
+</head>
+<body onload="onLoad();" style="background-color: white;">
+<h1>HTML5 Video - MLB tracks test</h1>
+<div>
+  <table>
+    <tr style="vertical-align: top;">
+      <td>
+       <video id="video" controls="controls" style="max-width: 800px; max-height: 600px">Browser does not support HTML5 video</video>
+      </td>
+    <td>
+	  
+      <button type="button" onclick="loadTracksInfo();">Load tracks info</button>
+      <table border="1" style="font-size: 50%">
+        <th>Video</th>
+        <th>Audio</th>
+        <th>Text</th>      
+        <tr>
+         <td id="video_tracks_info"></td>
+         <td id="audio_tracks_info"></td>
+         <td id="text_tracks_info"></td>
+        </tr>      
+      </table>
+    </td>
+  </tr>
+</div>
+</body>
+</html>
